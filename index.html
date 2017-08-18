@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+ 
+    <meta charset="utf-8">
+    <title>Facebook-Friends</title>
+ <script src="https://d3js.org/d3.v4.min.js"></script>
+ <link href="https://fonts.googleapis.com/css?family=Pacifico" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Doppio+One" rel="stylesheet">
+ <style>
+  body {
+		
+			
+			font-family: 'Doppio One', sans-serif;
+		
+text-align:center;
+			
+		}
+		.title{
+font-family: 'Open Sans Condensed', sans-serif;
+}
+
+
+div.tooltip {	
+font: 12px sans-serif;	
+    position: absolute;			
+    text-align: left;			
+   					
+  
+    background: #D8D8D8;	
+    border-style: solid;
+    border-width: 1px;
+	border-color: grey;
+    border-radius: 3px;			
+    pointer-events: none;			
+}
+
+
+</style>
+</head>
+<body>
+ 
+
+<script>
+
+// Variables ################
+var w = 650;
+var h = 600; // Size of graph
+
+var offW = 10; // Border in w.
+
+var offHFix = 20;
+var oldCat = "";
+var r = 2.6;
+
+
+// Scale ####################
+var yScale = d3.scaleLinear()
+	.domain([0,h])
+	.range([h,0]);
+
+	var cScale = d3.scaleOrdinal(d3.schemeCategory10);
+	//var cScale = d3.scaleLinear()
+//	.domain(["Abroad","Uni", "Schule", "Flugplatz", "Other", "Praktikum"])
+	//.range([]);
+
+//###########################
+
+var svg = d3.select("body").append("svg").attr("width", w).attr("height",h);
+
+function render(data){
+	//Create Div for Tooltip
+	var div = d3.select("body").append("div").attr("class", "tooltip").style("opacity", 0);	
+	
+	var circles = svg.selectAll("circle").data(data).enter().append("circle")
+	.attr("class", function(d){return d.category;})
+	.attr("id", function(d){return "friends";})
+	.attr("cx",function(d){return offW + 20*d.quartercount})
+	.attr("cy",function(d){
+		if (d.quarter !=oldCat)
+		{oldCat = d.quarter; offH = offHFix;}
+		offH = offH +r*2.3;
+		
+		return yScale(offH);
+		
+		
+		})
+	.attr("r",function(d){return r;})
+	.attr("fill", function(d){return cScale(d.category);})
+	.on("mouseover", function(d){
+	d3.select(this).attr("stroke", "black").attr("stroke-width", 1.);
+	svg.selectAll("circle#friends").attr("opacity",0.3);
+	svg.selectAll("circle." + d.category).attr("opacity",1);
+		div.transition()		
+            .duration(200)		
+            .style("opacity", .9);
+		div.html(d.shortname + " ("  + d.category +")" +  "<br/>" +"Added: " +  d.date		)	
+					.style("left", (d3.event.pageX) +10+ "px")		
+					.style("top", (d3.event.pageY - 22) + "px");
+						
+						
+						})
+	
+	.on("mouseout", function(){
+	d3.select(this).attr("stroke", "none");
+	svg.selectAll("circle#friends").attr("opacity",1);
+		div.transition()		
+            .duration(500)		
+             .style("opacity", 0);
+			 }
+			 );
+	
+	createAxis(data);
+	renderDescription(data);
+	}
+
+
+//############ CSV
+ function type(d){
+        d.quarter   = +d.quarter;
+         d.quartercount   = +d.quartercount;
+		  d.year   = +d.year;
+        return d;
+      }
+	
+	 d3.csv("data.csv", type, render);
+//################
+
+
+//#########LEGENDE
+
+var rLegende = r*1.5
+
+	var keyElements = svg.append("g");
+
+	
+	keyElements.append("text").attr("x",40).attr("y",function(d,i){return 50+13*1+3}).text("Internships").attr("font-size","10")
+	.on("mouseover", function(){d3.selectAll("circle#friends").attr("opacity",0.3); d3.selectAll("circle.Internships").attr("opacity",1);})
+	.on("mouseout", function(){d3.selectAll("circle").attr("opacity",1);});
+	keyElements.append("circle").attr("cx",30).attr("cy",function(d,i){return 50+13*1}).attr("r",rLegende).attr("fill", function(d){return cScale("Internships");})
+	.on("mouseover", function(){d3.selectAll("circle#friends").attr("opacity",0.3); d3.selectAll("circle.Internships").attr("opacity",1);})
+	.on("mouseout", function(){d3.selectAll("circle").attr("opacity",1);});
+	
+	keyElements.append("text").attr("x",40).attr("y",function(d,i){return 50+13*2+3}).text("Abroad").attr("font-size","10")
+	.on("mouseover", function(){d3.selectAll("circle#friends").attr("opacity",0.3); d3.selectAll("circle.Abroad").attr("opacity",1);})
+	.on("mouseout", function(){d3.selectAll("circle").attr("opacity",1);});
+	keyElements.append("circle").attr("cx",30).attr("cy",function(d,i){return 50+13*2}).attr("r",rLegende).attr("fill",function(d){return cScale("Abroad");})
+	
+	.on("mouseover", function(){d3.selectAll("circle#friends").attr("opacity",0.3); d3.selectAll("circle.Abroad").attr("opacity",1);})
+	.on("mouseout", function(){d3.selectAll("circle").attr("opacity",1);});;
+	
+	keyElements.append("text").attr("x",40).attr("y",function(d,i){return 50+13*3+3}).text("Soaring").attr("font-size","10")
+	
+	.on("mouseover", function(){d3.selectAll("circle#friends").attr("opacity",0.3); d3.selectAll("circle.Soaring").attr("opacity",1);})
+	.on("mouseout", function(){d3.selectAll("circle").attr("opacity",1);});;
+	keyElements.append("circle").attr("cx",30).attr("cy",function(d,i){return 50+13*3}).attr("r",rLegende).attr("fill",function(d){return cScale("Soaring");})
+	
+	.on("mouseover", function(){d3.selectAll("circle#friends").attr("opacity",0.3); d3.selectAll("circle.Soaring").attr("opacity",1);})
+	.on("mouseout", function(){d3.selectAll("circle").attr("opacity",1);});;
+	
+	keyElements.append("text").attr("x",40).attr("y",function(d,i){return 50+13*4+3}).text("Clubs etc.").attr("font-size","10")
+	
+	.on("mouseover", function(){d3.selectAll("circle#friends").attr("opacity",0.3); d3.selectAll("circle.Other").attr("opacity",1);})
+	.on("mouseout", function(){d3.selectAll("circle").attr("opacity",1);});;
+	keyElements.append("circle").attr("cx",30).attr("cy",function(d,i){return 50+13*4}).attr("r",rLegende).attr("fill",function(d){return cScale("Other");})
+	
+	.on("mouseover", function(){d3.selectAll("circle#friends").attr("opacity",0.3); d3.selectAll("circle.Other").attr("opacity",1);})
+	.on("mouseout", function(){d3.selectAll("circle").attr("opacity",1);});;
+	
+	keyElements.append("text").attr("x",40).attr("y",function(d,i){return 50+13*5+3}).text("University").attr("font-size","10")
+	
+	.on("mouseover", function(){d3.selectAll("circle#friends").attr("opacity",0.3); d3.selectAll("circle.Uni").attr("opacity",1);})
+	.on("mouseout", function(){d3.selectAll("circle").attr("opacity",1);});;
+	keyElements.append("circle").attr("cx",30).attr("cy",function(d,i){return 50+13*5}).attr("r",rLegende).attr("fill",function(d){return cScale("Uni");})
+	
+	.on("mouseover", function(){d3.selectAll("circle#friends").attr("opacity",0.3); d3.selectAll("circle.Uni").attr("opacity",1);})
+	.on("mouseout", function(){d3.selectAll("circle").attr("opacity",1);});;
+
+	keyElements.append("text").attr("x",40).attr("y",function(d,i){return 50+13*6+3}).text("School").attr("font-size","10")
+	
+	.on("mouseover", function(){d3.selectAll("circle#friends").attr("opacity",0.3); d3.selectAll("circle.School").attr("opacity",1);})
+	.on("mouseout", function(){d3.selectAll("circle").attr("opacity",1);});;
+	keyElements.append("circle").attr("cx",30).attr("cy",function(d,i){return 50+13*6}).attr("r",rLegende).attr("fill",function(d){return cScale("School");})
+	
+	.on("mouseover", function(){d3.selectAll("circle#friends").attr("opacity",0.3); d3.selectAll("circle.School").attr("opacity",1);})
+	.on("mouseout", function(){d3.selectAll("circle").attr("opacity",1);});;
+
+
+	
+	
+	
+	keyElements.attr("transform", "translate(" + 550 +","+ -50 + ")");
+
+	svg.append("text").attr("x",6).attr("y",function(d,i){return 23}).text("My Facebook-Friends & How I Met Them:  ").attr("font-size","30").attr("class","title");
+
+ svg.append("text").attr("x",6).attr("y",function(d,i){return 40}).text("Move the cursor over a circle/friend for more information").attr("font-size","13").attr("class","title")
+	 .attr("opacity", 1).style("font-weight", 550);
+	 
+	
+
+//DRAW Axis
+function createAxis(data){
+ var axis = svg.append("g");
+ var oldQuarter = "";
+ var lastX;
+var year = [2011, 2012,2013,2014,2015,2016,2017];
+var yearcount = 0;
+ axis.selectAll("text").data(data).enter().append("text")
+	.text(function(d){
+		if (oldQuarter != d.quarter)
+			{oldQuarter = d.quarter;
+			if (oldQuarter ==1)
+			{axis.append("line")  
+				.style("stroke", "grey")
+				.attr("opacity", 0.5)		
+				.attr("x1", offW + 20*d.quartercount-10)    
+				.attr("y1", yScale(offHFix))      
+				.attr("x2", offW + 20*d.quartercount-10)    
+				.attr("y2", yScale(offHFix)+10);
+				
+			axis.append("text").attr("x",offW + 20*d.quartercount+21).attr("y",function(d,i){return yScale(offHFix)+20}).text(year[yearcount]).attr("font-size","9");	
+				
+			yearcount = yearcount +1;
+				
+				
+				
+			}
+			return oldQuarter;
+			}
+		return "";}
+		
+		
+		
+		
+		)
+	.attr("x",function(d){lastX = offW + 20*d.quartercount-2; return lastX})
+	.attr("y",function(){return yScale(offHFix)+10;})
+	.attr("font-size","10");
+	
+axis.append("line")  
+	.style("stroke", "grey")
+	.attr("opacity", 0.5)		
+	.attr("x1", offW-r)    
+	.attr("y1", yScale(offHFix))      
+	.attr("x2", lastX+r*2)    
+	.attr("y2", yScale(offHFix)); 
+	
+
+//First year:
+axis.append("text").attr("x",offW +12).attr("y",function(d,i){return yScale(offHFix)+20}).text("2010").attr("font-size","9");	
+
+
+// "Quarter"
+axis.append("text").text("Quarter").attr("font-size","8")
+	.attr("x",function(d){return lastX+10})
+	.attr("y",function(){return yScale(offHFix)+10;})
+	.attr("font-size","10")
+	.attr("opacity", 0.5);
+// "Missing Quarter"
+axis.append("text").text("2").attr("font-size","8")
+	.attr("x",function(d){lastX = offW + 20*20-2; return lastX})
+	.attr("y",function(){return yScale(offHFix)+10;})
+	.attr("font-size","10");
+
+			
+}
+function renderDescription(){
+var descriptions = svg.append("g");
+descriptions.append("text")
+	.attr("text-anchor", "middle")
+	.attr("x",offW+ 20*2+30)
+	.attr("y",95)
+	.text("Student Exchange with USA")
+	.attr("font-size","10");
+						
+descriptions.append("line")  
+				.style("stroke", "black")
+				.attr("opacity", 1)		
+				.attr("x1", offW+ 20*2)    
+				.attr("y1", 100)      
+				.attr("x2", offW+ 20*2)    
+				.attr("y2", 162);						
+						
+
+
+descriptions.append("text")
+	.attr("text-anchor", "middle")
+	.attr("x",offW+ 20*13)
+	.attr("y",420)
+	.text("Start of Bachelor's Studies")
+	.attr("font-size","10");
+						
+descriptions.append("line")  
+				.style("stroke", "black")
+				.attr("opacity", 1)		
+				.attr("x1", offW+ 20*13)    
+				.attr("y1", 425)      
+				.attr("x2", offW+ 20*13)    
+				.attr("y2", 485);						
+						
+
+						
+descriptions.append("text")
+	.attr("text-anchor", "middle")
+	.attr("x",offW+ 20*21)
+	.attr("y",420)
+	.text("Semester Abroad in San Diego")
+	.attr("font-size","10");
+						
+descriptions.append("line")  
+				.style("stroke", "black")
+				.attr("opacity", 1)		
+				.attr("x1", offW+ 20*21)    
+				.attr("y1", 425)      
+				.attr("x2", offW+ 20*21)    
+				.attr("y2", 460);						
+
+
+descriptions.append("text")
+	.attr("text-anchor", "middle")
+	.attr("x",offW+ 20*25)
+	.attr("y",470)
+	.text("Start of Master's Studies")
+	.attr("font-size","10");
+						
+descriptions.append("line")  
+				.style("stroke", "black")
+				.attr("opacity", 1)		
+				.attr("x1", offW+ 20*25)    
+				.attr("y1", 475)      
+				.attr("x2", offW+ 20*25)    
+				.attr("y2", 527);
+
+descriptions.append("text")
+	.attr("text-anchor", "middle")
+	.attr("x",offW+ 20*29)
+	.attr("y",420)
+	.text("Language School in Spain")
+	.attr("font-size","10");
+						
+descriptions.append("line")  
+				.style("stroke", "black")
+				.attr("opacity", 1)		
+				.attr("x1", offW+ 20*29)    
+				.attr("y1", 425)      
+				.attr("x2", offW+ 20*29)    
+				.attr("y2", 533);				
+					
+
+descriptions.append("text")
+	.attr("text-anchor", "middle")
+	.attr("x",offW+ 20*7)
+	.attr("y",420)
+	.text("Abitur")
+	.attr("font-size","10");
+						
+descriptions.append("line")  
+				.style("stroke", "black")
+				.attr("opacity", 1)		
+				.attr("x1", offW+ 20*7)    
+				.attr("y1", 425)      
+				.attr("x2", offW+ 20*7)    
+				.attr("y2", 544);				
+					
+						
+						
+						
+
+						
+						
+
+}
+
+
+
+//##########
+
+</script>
+</body>
+</html>
